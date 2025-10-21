@@ -12,43 +12,54 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+// Player
 let player = {x: 320, y: 240, size: 20, speed: 5};
+
+// Bullets
 let bullets = [];
+
+// Walls
 let walls = [
     {x: 100, y: 100, w: 200, h: 20},
     {x: 300, y: 300, w: 20, h: 150}
 ];
 
-document.addEventListener("keydown", (e) => {
-    if(e.key === "w") player.y -= player.speed;
-    if(e.key === "s") player.y += player.speed;
-    if(e.key === "a") player.x -= player.speed;
-    if(e.key === "d") player.x += player.speed;
-});
+// Controls
+let keys = {};
+document.addEventListener("keydown", (e) => { keys[e.key] = true; });
+document.addEventListener("keyup", (e) => { keys[e.key] = false; });
 
+// Shooting
 canvas.addEventListener("click", (e) => {
-    let rect = canvas.getBoundingClientRect();
-    let mx = e.clientX - rect.left;
-    let my = e.clientY - rect.top;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
     bullets.push({x: player.x + player.size/2, y: player.y + player.size/2, tx: mx, ty: my});
 });
 
 function update() {
+    // Player movement
+    if(keys["w"]) player.y -= player.speed;
+    if(keys["s"]) player.y += player.speed;
+    if(keys["a"]) player.x -= player.speed;
+    if(keys["d"]) player.x += player.speed;
+
     // Update bullets
-    bullets.forEach((b, i) => {
+    bullets = bullets.filter(b => {
         let dx = b.tx - b.x;
         let dy = b.ty - b.y;
         let dist = Math.hypot(dx, dy);
-        if(dist < 5) bullets.splice(i, 1);
-        else {
-            b.x += dx/dist * 10;
-            b.y += dy/dist * 10;
-        }
+        if(dist < 5) return false;
+        b.x += dx/dist * 10;
+        b.y += dy/dist * 10;
+        return true;
     });
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Clear screen
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw player
     ctx.fillStyle = "blue";
@@ -60,7 +71,11 @@ function draw() {
 
     // Draw bullets
     ctx.fillStyle = "red";
-    bullets.forEach(b => ctx.beginPath(), ctx.arc(b.x, b.y, 5, 0, Math.PI*2), ctx.fill());
+    bullets.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 5, 0, Math.PI*2);
+        ctx.fill();
+    });
 }
 
 function loop() {
